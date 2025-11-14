@@ -16,7 +16,7 @@ on:
       batch_size:
         description: 'Batch Size'
         required: false
-        default: '20'
+        default: '40'
 
 concurrency:
   group: target-scraper-${{ github.ref }}
@@ -72,10 +72,10 @@ jobs:
           # Scraper Settings
           MAX_PROFILES_PER_RUN: ${{ github.event.inputs.max_profiles || '0' }}
           BATCH_SIZE: ${{ github.event.inputs.batch_size || '10' }}
-          MIN_DELAY: '0.2'
-          MAX_DELAY: '0.4'
-          PAGE_LOAD_TIMEOUT: '15'
-          SHEET_WRITE_DELAY: '0.4'
+          MIN_DELAY: '0.4'
+          MAX_DELAY: '0.6'
+          PAGE_LOAD_TIMEOUT: '30'
+          SHEET_WRITE_DELAY: '0.8'
         
         run: |
           echo "🎯 Starting Target Scraper..."
