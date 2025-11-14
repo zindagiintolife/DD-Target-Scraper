@@ -3,7 +3,7 @@ name: "Target Profile Scraper📌"
 on:
   # Scheduled run every 58 minutes
   schedule:
-    - cron: '58 * * * *'  # Every 58 minutes (at :58 of each hour)
+    - cron: '*/30 * * * *'  # Every 30 minutes
   
   # Manual trigger
   workflow_dispatch:
@@ -16,7 +16,11 @@ on:
       batch_size:
         description: 'Batch Size'
         required: false
-        default: '10'
+        default: '20'
+
+concurrency:
+  group: target-scraper-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   scrape-targets:
