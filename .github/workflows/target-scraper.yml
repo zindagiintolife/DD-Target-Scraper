@@ -3,7 +3,7 @@ name: "Target Profile Scraper📌"
 on:
   # Scheduled run every 58 minutes
   schedule:
-    - cron: '*/2 * * * *'  # Every 2 minutes
+    - cron: '*/100 * * * *'  # Every 100 minutes
   
   # Manual trigger
   workflow_dispatch:
@@ -25,7 +25,7 @@ concurrency:
 jobs:
   scrape-targets:
     runs-on: ubuntu-latest
-    timeout-minutes: 2  # Must finish before next scheduled run
+    timeout-minutes: 100  # Must finish before next scheduled run
     
     steps:
       - name: 🔄 Checkout Repository
