@@ -16,7 +16,7 @@ on:
       batch_size:
         description: 'Batch Size'
         required: false
-        default: '40'
+        default: '10'
 
 concurrency:
   group: target-scraper-${{ github.ref }}
@@ -75,7 +75,7 @@ jobs:
           MIN_DELAY: '0.4'
           MAX_DELAY: '0.6'
           PAGE_LOAD_TIMEOUT: '30'
-          SHEET_WRITE_DELAY: '0.8'
+          SHEET_WRITE_DELAY: '0.9'
         
         run: |
           echo "🎯 Starting Target Scraper..."
