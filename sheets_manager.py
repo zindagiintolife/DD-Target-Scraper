@@ -305,22 +305,26 @@ class SheetsManager:
             self.safe_update(self.dashboard_sheet.append_row, row_data)
         except Exception as e:
             log_msg(f"⚠️ Dashboard update failed: {e}")
-    
+
     def write_profile(self, data):
-        # UPDATE existing row OR APPEND new row
+        """
+        Write profile data.
+        If profile exists → update same row.
+        If new profile → append at bottom.
+        """
 
         nickname = data.get("NICK NAME", "").strip()
         if not nickname:
             return {"status": "error", "error": "Missing nickname", "changed_fields": []}
 
-        // Auto add tags
-        data['TAGS'] = self.get_tags_for_nickname(nickname)
+        # Add tags automatically
+        data["TAGS"] = self.get_tags_for_nickname(nickname)
 
-        // Prepare row values based on COLUMN_ORDER
+        # Prepare row values in COLUMN_ORDER sequence
         row_values = []
         for col in COLUMN_ORDER:
             if col == "IMAGE":
-                cell_value = ""   // formula will be applied
+                cell_value = ""   # image formula apply later
             elif col == "PROFILE LINK":
                 cell_value = "Profile" if data.get(col) else ""
             elif col == "LAST POST":
@@ -332,14 +336,15 @@ class SheetsManager:
         nickname_lower = nickname.lower()
         existing = self.existing_profiles.get(nickname_lower)
 
-        // -------------------------------------------------
-        // CASE 1 — PROFILE EXISTS → UPDATE SAME ROW
-        // -------------------------------------------------
+        # ---------------------------------------------------------
+        # CASE 1: Profile already exist → update same row
+        # ---------------------------------------------------------
         if existing:
-            row_num = existing['row']
+            row_num = existing["row"]
 
+            # Previous snapshot for logging
             before_snapshot = {
-                COLUMN_ORDER[idx]: (existing['data'][idx] if idx < len(existing['data']) else "")
+                COLUMN_ORDER[idx]: (existing["data"][idx] if idx < len(existing["data"]) else "")
                 for idx in range(len(COLUMN_ORDER))
             }
 
@@ -354,6 +359,7 @@ class SheetsManager:
                 self.log_change(nickname, "UNCHANGED", [], before_snapshot, data)
                 return {"status": "unchanged", "changed_fields": []}
 
+            # Update full row
             cell_range = f"A{row_num}:{column_letter(len(COLUMN_ORDER))}{row_num}"
             self.safe_update(
                 self.profiles_sheet.update,
@@ -361,27 +367,40 @@ class SheetsManager:
                 range_name=cell_range
             )
 
+            # Apply hyperlink + image formulas
             self.apply_link_formulas(row_num, data)
 
             changed_fields = [COLUMN_ORDER[idx] for idx in changed_indices]
             self.log_change(nickname, "UPDATED", changed_fields, before_snapshot, data)
 
-            self.existing_profiles[nickname_lower] = {'row': row_num, 'data': row_values}
+            # Update cache
+            self.existing_profiles[nickname_lower] = {
+                "row": row_num,
+                "data": row_values
+            }
 
             return {"status": "updated", "changed_fields": changed_fields}
 
-        // -------------------------------------------------
-        // CASE 2 — NEW PROFILE → APPEND
-        // -------------------------------------------------
+        # ---------------------------------------------------------
+        # CASE 2: New profile → append row
+        # ---------------------------------------------------------
         self.safe_update(self.profiles_sheet.append_row, row_values)
+
         new_row = len(self.profiles_sheet.get_all_values())
 
+        # Apply formulas to new row
         self.apply_link_formulas(new_row, data)
 
-        self.existing_profiles[nickname_lower] = {'row': new_row, 'data': row_values}
+        # Update cache
+        self.existing_profiles[nickname_lower] = {
+            "row": new_row,
+            "data": row_values
+        }
 
         changed_fields = list(COLUMN_ORDER)
         self.log_change(nickname, "NEW", changed_fields, None, data)
 
         return {"status": "new", "changed_fields": changed_fields}
+
+
 
